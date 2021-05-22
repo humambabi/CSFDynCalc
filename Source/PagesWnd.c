@@ -80,7 +80,12 @@ INT_PTR CALLBACK Disclaimer_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 INT_PTR CALLBACK About_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 		case WM_INITDIALOG: {
-			CreateCtlLink(TEXT("Disclaimer"), 67, 150, 75, 25, hDlg, IDC_ABOUT_LNK_DISCLAIMER, GetSysColor(COLOR_3DFACE));
+			CreateCtlLink(TEXT("License"), DPIScaleX(67), DPIScaleY(150), ABOUTWND_LNKLICENSE_WIDTH, DPIScaleY(25),
+				hDlg, IDC_ABOUT_LNK_LICENSE, GetSysColor(COLOR_3DFACE));
+			CreateCtlLink(TEXT("Disclaimer"), DPIScaleX(67), DPIScaleY(175), DPIScaleX(75), DPIScaleY(25),
+				hDlg, IDC_ABOUT_LNK_DISCLAIMER, GetSysColor(COLOR_3DFACE));
+			CreateCtlLink(TEXT("Source code on github.com"), DPIScaleX(67), DPIScaleY(200), DPIScaleX(190), DPIScaleY(25),
+				hDlg, IDC_ABOUT_LNK_SOURCE, GetSysColor(COLOR_3DFACE));
 			break;
 		}
 
@@ -125,6 +130,13 @@ INT_PTR CALLBACK About_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			lstrcpy(tsText, TEXT("An open-source program to calculate cerebrospinal fluid (CSF) variables in patients or animal experiments."));
 			SetRect(&rcText, iX, iY, rcCli.right, rcCli.bottom);
 			DrawText(Ps.hdc, tsText, -1, &rcText, DT_WORDBREAK);
+
+			lstrcpy(tsText, TEXT("(GNU GPLv3)"));
+			GetWindowRect(GetDlgItem(hDlg, IDC_ABOUT_LNK_LICENSE), &rcText);
+			MapWindowPoints(HWND_DESKTOP, hDlg, (POINT *)&rcText, 2);
+			rcText.left += ABOUTWND_LNKLICENSE_WIDTH;
+			rcText.right = rcCli.right;
+			DrawText(Ps.hdc, tsText, -1, &rcText, DT_SINGLELINE);
 			SelectFont(Ps.hdc, hFontOrig);
 			DeleteFont(hFont);
 
@@ -136,13 +148,26 @@ INT_PTR CALLBACK About_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 
 		case WM_COMMAND: {
-			if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
-				EndDialog(hDlg, LOWORD(wParam));
-			} else if (LOWORD(wParam) == IDC_ABOUT_LNK_DISCLAIMER) {
-				if (DialogBox(g_hInstApp, MAKEINTRESOURCE(IDD_DISCLAIMER), hDlg, Disclaimer_DlgProc) == IDCANCEL) {
-					// Close the app if the user "disagree"d to the disclaimer
-					DestroyWindow(GetParent(hDlg)); // Destroy the main window
-				}
+			switch (LOWORD(wParam)) {
+				case IDOK:
+				case IDCANCEL:
+					EndDialog(hDlg, LOWORD(wParam));
+					break;
+
+				case IDC_ABOUT_LNK_LICENSE:
+					ShellExecute(hDlg, TEXT("open"), TEXT("https://github.com/humambabi/CSFDynCalc/blob/master/LICENSE"), NULL, NULL, SW_SHOW);
+					break;
+
+				case IDC_ABOUT_LNK_DISCLAIMER:
+					if (DialogBox(g_hInstApp, MAKEINTRESOURCE(IDD_DISCLAIMER), hDlg, Disclaimer_DlgProc) == IDCANCEL) {
+						// Close the app if the user "disagree"d to the disclaimer
+						DestroyWindow(GetParent(hDlg)); // Destroy the main window
+					}
+					break;
+
+				case IDC_ABOUT_LNK_SOURCE:
+					ShellExecute(hDlg, TEXT("open"), TEXT("https://github.com/humambabi/CSFDynCalc"), NULL, NULL, SW_SHOW);
+					break;
 			}
 			break;
 		}

@@ -19,7 +19,9 @@
 
 // Dialogs and their child controls
 #define IDD_ABOUT											0x3001
-#define IDC_ABOUT_LNK_DISCLAIMER						0x4001
+#define IDC_ABOUT_LNK_LICENSE							0x4001
+#define IDC_ABOUT_LNK_DISCLAIMER						0x4002
+#define IDC_ABOUT_LNK_SOURCE							0x4003
 
 #define IDD_DISCLAIMER									0x3002
 #define IDC_RTF_DISCLAIMER								0x4001

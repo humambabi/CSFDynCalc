@@ -23,6 +23,8 @@
 #define MAINWND_LNK_HEIGHT             DPIScaleY(23)
 #define MAINWND_LNK_MARGINBOTTOM       DPIScaleY(15)
 
+#define ABOUTWND_LNKLICENSE_WIDTH      DPIScaleX(55)
+
 // Tabs-related definitions
 #define CLR_TABAREA                    RGB(245, 250, 255)
 
