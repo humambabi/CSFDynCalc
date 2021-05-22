@@ -529,7 +529,7 @@ BOOL APIENTRY CreateResults_Evans(HWND hDlg) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 BOOL APIENTRY CreateResults_MarmarouBolus(HWND hDlg) {
 	float		fDeltaVol, fBasePressure, fMaxPressure, fPressure2m, fTimeP2;
-	float		fPVI, fRout, fCout, fPpDivP0, fT2P0, fRLogBrackets, fTemp;
+	float		fPVI, fRout, fCout, fPpDivP0, fT2P0, fRLogArgument, fTemp;
 	TCHAR		tsText[250], tsResult[500], *ptsFilePath, tsTestName[] = TEXT("Marmarou's test"), tsLine[250], tsTemp[150];
 	HANDLE	hFile;
 
@@ -573,17 +573,21 @@ BOOL APIENTRY CreateResults_MarmarouBolus(HWND hDlg) {
 		MessageBox(hDlg, TEXT("Sorry! The entered values caused a division by zero error!"), STR_APPNAME, MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
-	fRLogBrackets = (fPressure2m / fMaxPressure) * ((fMaxPressure - fBasePressure) / (fPressure2m - fBasePressure));
-	fTemp = fPVI * logf(fRLogBrackets);
+	fRLogArgument = (fPressure2m / fMaxPressure) * ((fMaxPressure - fBasePressure) / (fPressure2m - fBasePressure));
+	if (fRLogArgument <= 0) { // Logarithms' argument cannot be 0 or less
+		MessageBox(hDlg, TEXT("Sorry! The entered values caused a logarithm error!\r\n\r\nPlease, check the values and try again."), STR_APPNAME, MB_OK | MB_ICONEXCLAMATION);
+		return FALSE;
+	}
+	fTemp = fPVI * log10f(fRLogArgument);
 	if (fTemp == 0.0f) {
 		MessageBox(hDlg, TEXT("Sorry! The entered values caused a division by zero error!"), STR_APPNAME, MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
 	fRout = fT2P0 / fTemp;
 
-	/* Assuming P is Pp */
-	// fMaxPressure is checked not to be 0 before
-	fCout = (0.4343f * fPVI) / fMaxPressure;
+	/* P is P0 */
+	// fBasePressure is checked before (not to be 0)
+	fCout = (0.4343f * fPVI) / fBasePressure;
 
 	// Create a result string, and assign it to the results static control
 	StringCbPrintf(tsResult, sizeof(tsResult), TEXT("PVI = %.2f mL\r\nCompliance:\r\nRout = %.2f mmHg/mL/min\r\nCout = %.2f mmHg/mL/min"), fPVI, fRout, fCout);
