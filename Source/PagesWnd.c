@@ -122,7 +122,7 @@ INT_PTR CALLBACK About_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			iY += DPIScaleY(35);
 			hFont = CreateGdiFont(11, FW_NORMAL);
 			hFontOrig = SelectFont(Ps.hdc, hFont);
-			lstrcpy(tsText, TEXT("A free program to calculate cerebrospinal fluid (CSF) variables in patients or animal experiments."));
+			lstrcpy(tsText, TEXT("An open-source program to calculate cerebrospinal fluid (CSF) variables in patients or animal experiments."));
 			SetRect(&rcText, iX, iY, rcCli.right, rcCli.bottom);
 			DrawText(Ps.hdc, tsText, -1, &rcText, DT_WORDBREAK);
 			SelectFont(Ps.hdc, hFontOrig);
