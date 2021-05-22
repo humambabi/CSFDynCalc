@@ -53,4 +53,9 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\LICENSE" />
+    <None Include="..\DISCLAIMER" />
+    <None Include="..\README.md" />
+  </ItemGroup>
 </Project>
