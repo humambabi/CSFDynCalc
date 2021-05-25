@@ -1,4 +1,4 @@
-# CSF Dynamics CALC v1.0
+# CSF Dynamics CALC v1.01
 
 An open-source program to calculate cerebrospinal fluid (CSF) variables in patients or animal experiments based on the following papers:
 <ol>
