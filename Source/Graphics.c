@@ -1,5 +1,5 @@
 ﻿//
-// CSF Dynamic CALC v1.0
+// CSF Dynamic CALC
 // (Graphics.c) Contains graphics functions
 //
 
@@ -220,7 +220,7 @@ void APIENTRY DrawTabs(GpGraphics *pGr, RECT *prcCli) {
 	RcText.Width = (REAL)TABS_LABELAREA_WIDTH;
 	RcText.Height = (REAL)TABS_TITLE_HEIGHT;
 	pFont = CreateGdipFont(10, FW_NORMAL, FALSE, FALSE);
-	GdipCreateSolidFill(MAKEARGB(200, 0, 0, 0), &pBrush);
+	GdipCreateSolidFill(MAKEARGB(255, 185, 0, 0), &pBrush);
 	GdipDrawString(pGr, tsText, lstrlen(tsText), pFont, &RcText, pStrFmt, pBrush);
 	GdipDeleteBrush(pBrush);
 	GdipDeleteFont(pFont);

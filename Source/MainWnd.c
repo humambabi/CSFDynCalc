@@ -1,5 +1,5 @@
 //
-// CSF Dynamic CALC v1.0
+// CSF Dynamic CALC
 // (MainWnd.c) Application's main window event procedures
 //
 
@@ -30,7 +30,7 @@ int APIENTRY PointOnTabbtn(POINT Pt);
 void APIENTRY LoadTabPage(HWND hWndParent, int iPage);
 HFONT APIENTRY CreateGdiFont(int iPointSize, int iWeight);
 INT_PTR CALLBACK Disclaimer_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-HWND APIENTRY CreateCtlLink(TCHAR *ptsText, int iX, int iY, UINT uW, UINT uH, HWND hWndParent, UINT uCtlID, COLORREF clrBkgnd);
+HWND APIENTRY CreateCtlLink(TCHAR *ptsText, int iX, int iY, UINT uW, UINT uH, HWND hWndParent, UINT uCtlID, COLORREF clrBkgnd, BOOL bTypeRed);
 INT_PTR CALLBACK About_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
@@ -43,6 +43,7 @@ BOOL APIENTRY MainWnd_OnCreate(HWND hWnd, CREATESTRUCT *pCreateStruct) {
 	// Create and save the private data structure
 	pData = (MAINWNDDATA *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS, sizeof(MAINWNDDATA));
 	pData->hFontPageTitle = CreateGdiFont(16, FW_BOLD);
+	pData->hFontInput = CreateGdiFont(10, FW_BOLD);
 	pData->hFontResults = CreateGdiFont(11, FW_BOLD);
 	pData->hBrushCtlBkgnd = CreateSolidBrush(CLR_BACKGROUND);
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)pData);
@@ -51,7 +52,7 @@ BOOL APIENTRY MainWnd_OnCreate(HWND hWnd, CREATESTRUCT *pCreateStruct) {
 	GetClientRect(hWnd, &rcCli); // Client rect is not included in CREATESTRUCT members
 	CreateCtlLink(TEXT("About"), TABS_OUTER_MARGIN_X + TABS_ITEM_CURVE_MARGIN_X + (TABS_LABELAREA_WIDTH / 2) - (MAINWND_LNK_ABOUT_WIDTH / 2),
 		rcCli.bottom - MAINWND_LNK_HEIGHT - MAINWND_LNK_MARGINBOTTOM, MAINWND_LNK_ABOUT_WIDTH, MAINWND_LNK_HEIGHT,
-		hWnd, IDC_LNK_ABOUT, CLR_TABAREA);
+		hWnd, IDC_LNK_ABOUT, CLR_TABAREA, TRUE);
 
 	// Load default page
 	LoadTabPage(hWnd, g_iCurPage);
@@ -240,6 +241,7 @@ void APIENTRY MainWnd_OnDestroy(HWND hWnd) {
 
 	if (pData) {
 		if (pData->hFontPageTitle) DeleteFont(pData->hFontPageTitle);
+		if (pData->hFontInput) DeleteFont(pData->hFontInput);
 		if (pData->hFontResults) DeleteFont(pData->hFontResults);
 		if (pData->hBrushCtlBkgnd) DeleteBrush(pData->hBrushCtlBkgnd);
 

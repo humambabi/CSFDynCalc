@@ -1,13 +1,13 @@
 //
-// CSF Dynamic CALC v1.0
+// CSF Dynamic CALC
 // (PagesWnd.c) Pages' dialog event procedures
 //
 
 #include "Build.h"
-#include "AppDefs.h"
 #include <ShellAPI.h>
 #include <Richedit.h>
 #include <WindowsX.h>
+#include "AppDefs.h"
 #include "Resources.h"
 
 
@@ -25,7 +25,7 @@ void APIENTRY InvalidField(HWND hDlg, UINT uCtlID, TCHAR* ptsText);
 BOOL APIENTRY ValidateEditEmpty(HWND hDlg, UINT uItemID);
 BOOL APIENTRY ValidateEditNumberRange(HWND hDlg, UINT uItemID, int iMin, int iMax);
 void APIENTRY LoadCheckDpiAwareBitmap(HWND hDlg, UINT uCtlID);
-HWND APIENTRY CreateCtlLink(TCHAR* ptsText, int iX, int iY, UINT uW, UINT uH, HWND hWndParent, UINT uCtlID, COLORREF clrBkgnd);
+HWND APIENTRY CreateCtlLink(TCHAR* ptsText, int iX, int iY, UINT uW, UINT uH, HWND hWndParent, UINT uCtlID, COLORREF clrBkgnd, BOOL bTypeRed);
 void APIENTRY PageResults_Hide(HWND hDlg);
 void APIENTRY LoadDisclaimerText(HWND hDlg, UINT uCtlID);
 BOOL APIENTRY EnforceSignedIntegerEdit(HWND hCtl);
@@ -80,12 +80,12 @@ INT_PTR CALLBACK Disclaimer_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 INT_PTR CALLBACK About_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 		case WM_INITDIALOG: {
-			CreateCtlLink(TEXT("License"), DPIScaleX(67), DPIScaleY(150), ABOUTWND_LNKLICENSE_WIDTH, DPIScaleY(25),
-				hDlg, IDC_ABOUT_LNK_LICENSE, GetSysColor(COLOR_3DFACE));
-			CreateCtlLink(TEXT("Disclaimer"), DPIScaleX(67), DPIScaleY(175), DPIScaleX(75), DPIScaleY(25),
-				hDlg, IDC_ABOUT_LNK_DISCLAIMER, GetSysColor(COLOR_3DFACE));
-			CreateCtlLink(TEXT("Source code on github.com"), DPIScaleX(67), DPIScaleY(200), DPIScaleX(190), DPIScaleY(25),
-				hDlg, IDC_ABOUT_LNK_SOURCE, GetSysColor(COLOR_3DFACE));
+			CreateCtlLink(TEXT("License"), DPIScaleX(71), DPIScaleY(313), ABOUTWND_LNKLICENSE_WIDTH, DPIScaleY(21),
+				hDlg, IDC_ABOUT_LNK_LICENSE, GetSysColor(COLOR_3DFACE), FALSE);
+			CreateCtlLink(TEXT("Disclaimer"), DPIScaleX(71), DPIScaleY(335), DPIScaleX(75), DPIScaleY(21),
+				hDlg, IDC_ABOUT_LNK_DISCLAIMER, GetSysColor(COLOR_3DFACE), FALSE);
+			CreateCtlLink(TEXT("Source code on github.com"), DPIScaleX(71), DPIScaleY(357), DPIScaleX(190), DPIScaleY(21),
+				hDlg, IDC_ABOUT_LNK_SOURCE, GetSysColor(COLOR_3DFACE), FALSE);
 			break;
 		}
 
@@ -96,7 +96,7 @@ INT_PTR CALLBACK About_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			HICON			hIcon;
 			HFONT			hFont, hFontOrig;
 			int			iX, iY;
-			TCHAR			tsText[150];
+			TCHAR			tsText[250];
 
 
 			GetClientRect(hDlg, &rcCli);
@@ -108,29 +108,55 @@ INT_PTR CALLBACK About_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			hIcon = LoadImage(g_hInstApp, MAKEINTRESOURCE(IDI_APPICON), IMAGE_ICON, DPIScaleX(48), DPIScaleY(48), LR_SHARED);
 			DrawIconEx(Ps.hdc, DPIScaleX(15), DPIScaleY(15), hIcon, DPIScaleX(48), DPIScaleY(48), 0, NULL, DI_NORMAL);
 
-			iX = DPIScaleX(67);
-			iY = DPIScaleY(28);
-			hFont = CreateGdiFont(13, FW_BOLD);
+			iX = DPIScaleX(71);
+			iY = DPIScaleY(30);
+			hFont = CreateGdiFont(14, FW_BOLD);
 			hFontOrig = SelectFont(Ps.hdc, hFont);
 			TextOut(Ps.hdc, iX, iY, STR_APPNAME, lstrlen(STR_APPNAME));
 			SelectFont(Ps.hdc, hFontOrig);
 			DeleteFont(hFont);
 			
 			iY += DPIScaleY(28);
-			hFont = CreateGdiFont(9, FW_NORMAL);
+			hFont = CreateGdiFont(10, FW_NORMAL);
 			hFontOrig = SelectFont(Ps.hdc, hFont);
-			lstrcpy(tsText, TEXT("Copyright © 2021"));
-			TextOut(Ps.hdc, iX, iY, tsText, lstrlen(tsText));
+			lstrcpy(tsText, TEXT("Copyright ï¿½ 2021, Naurotraumatology and Neurosurgery Research Unit, ")
+				TEXT("Vall d'Hebron Research Institute, Barcelona, Spain."));
+			SetRect(&rcText, iX, iY, rcCli.right - DPIScaleX(25), rcCli.bottom);
+			DrawText(Ps.hdc, tsText, -1, &rcText, DT_WORDBREAK);
 			SelectFont(Ps.hdc, hFontOrig);
 			DeleteFont(hFont);
 
-			iY += DPIScaleY(35);
-			hFont = CreateGdiFont(11, FW_NORMAL);
+			iY += DPIScaleY(50);
+			hFont = CreateGdiFont(10, FW_BOLD);
 			hFontOrig = SelectFont(Ps.hdc, hFont);
-			lstrcpy(tsText, TEXT("An open-source program to calculate cerebrospinal fluid (CSF) variables in patients or animal experiments."));
-			SetRect(&rcText, iX, iY, rcCli.right, rcCli.bottom);
+			lstrcpy(tsText, TEXT("An open-source program to calculate cerebrospinal fluid (CSF) variables in ")
+				TEXT("patients or animal experiments based on the following papers:"));
+			SetRect(&rcText, iX, iY, rcCli.right - DPIScaleX(25), rcCli.bottom);
 			DrawText(Ps.hdc, tsText, -1, &rcText, DT_WORDBREAK);
+			DrawText(Ps.hdc, tsText, -1, &rcText, DT_WORDBREAK | DT_CALCRECT);
+			SelectFont(Ps.hdc, hFontOrig);
+			DeleteFont(hFont);
 
+			iY += (rcText.bottom - rcText.top) + DPIScaleY(13);
+			hFont = CreateGdiFont(10, FW_NORMAL);
+			hFontOrig = SelectFont(Ps.hdc, hFont);
+			lstrcpy(tsText, TEXT("1. Marmarou A, Shulman K, LaMorgese J. Compartmental analysis of compliance ")
+				TEXT("and outflow resistance of the cerebrospinal fluid system. J Neurosurgery 43:523-534, 1975"));
+			SetRect(&rcText, iX, iY, rcCli.right - DPIScaleX(25), rcCli.bottom);
+			DrawText(Ps.hdc, tsText, -1, &rcText, DT_WORDBREAK);
+			DrawText(Ps.hdc, tsText, -1, &rcText, DT_WORDBREAK | DT_CALCRECT);
+
+			iY += (rcText.bottom - rcText.top) + DPIScaleY(13);
+			lstrcpy(tsText, TEXT("2. Marmarou A, Shulman K, Rosende RM. A nonlinear analysis of the ")
+				TEXT("cerebrospinal fluid system and intracranial pressure dynamics. J Neurosurgery ")
+				TEXT("48:332-344, 1978"));
+			SetRect(&rcText, iX, iY, rcCli.right - DPIScaleX(25), rcCli.bottom);
+			DrawText(Ps.hdc, tsText, -1, &rcText, DT_WORDBREAK);
+			SelectFont(Ps.hdc, hFontOrig);
+			DeleteFont(hFont);
+
+			hFont = CreateGdiFont(11, FW_NORMAL);
+			hFontOrig = SelectFont(Ps.hdc, hFont);			
 			lstrcpy(tsText, TEXT("(GNU GPLv3)"));
 			GetWindowRect(GetDlgItem(hDlg, IDC_ABOUT_LNK_LICENSE), &rcText);
 			MapWindowPoints(HWND_DESKTOP, hDlg, (POINT *)&rcText, 2);
@@ -198,11 +224,19 @@ INT_PTR CALLBACK PageEvans_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
 			// Set child controls properties
 			SendDlgItemMessage(hDlg, IDC_EVANS_STC_TITLE, WM_SETFONT, (WPARAM)pMainData->hFontPageTitle, MAKELPARAM(TRUE, 0));
+
 			SendDlgItemMessage(hDlg, IDC_EVANS_EDT_FRONTALHORNSMAXWIDTH, EM_SETLIMITTEXT, 3, 0);
 			SendDlgItemMessage(hDlg, IDC_EVANS_EDT_SKULLMAXINNERDIAMETER, EM_SETLIMITTEXT, 3, 0);
+
+			SendDlgItemMessage(hDlg, IDC_EVANS_STC_EVALUATORNAME, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_EVANS_STC_PATIENTNAME, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_EVANS_STC_MEDICALRECORD, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_EVANS_STC_FRONTALHORNSMAXWIDTH, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_EVANS_STC_SKULLINNERDIAMETER, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+
 			LoadCheckDpiAwareBitmap(hDlg, IDC_PIC_RESULTS);
 			SendDlgItemMessage(hDlg, IDC_STC_RESULTS, WM_SETFONT, (WPARAM)pMainData->hFontResults, MAKELPARAM(TRUE, 0));
-			CreateCtlLink(TEXT("(Open output file)"), 10, 20, 150, 30, hDlg, IDC_LNK_RESULTS, CLR_BACKGROUND);
+			CreateCtlLink(TEXT("(Open output file)"), 10, 20, 150, 30, hDlg, IDC_LNK_RESULTS, CLR_BACKGROUND, FALSE);
 			PageResults_Hide(hDlg);
 
 			// Should send a WM_SIZE message after adding any control
@@ -412,15 +446,26 @@ INT_PTR CALLBACK PageMarmarou_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
 			// Set child controls properties
 			SendDlgItemMessage(hDlg, IDC_MARMAROU_STC_TITLE, WM_SETFONT, (WPARAM)pMainData->hFontPageTitle, MAKELPARAM(TRUE, 0));
+
+			SendDlgItemMessage(hDlg, IDC_MARMAROU_STC_EVALUATORNAME, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_MARMAROU_STC_PATIENTNAME, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_MARMAROU_STC_MEDICALRECORD, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_MARMAROU_STC_ADDEDVOLUME, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_MARMAROU_STC_BASELINEPRESSURE, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_MARMAROU_STC_MAXIMUMPRESSURE, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_MARMAROU_STC_PRESSUREAFTERTMINS, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_MARMAROU_STC_TIMEFORPT, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+
 			LoadCheckDpiAwareBitmap(hDlg, IDC_PIC_RESULTS);
 			SendDlgItemMessage(hDlg, IDC_STC_RESULTS, WM_SETFONT, (WPARAM)pMainData->hFontResults, MAKELPARAM(TRUE, 0));
-			CreateCtlLink(TEXT("(Open output file)"), 10, 20, 150, 30, hDlg, IDC_LNK_RESULTS, CLR_BACKGROUND);
+			CreateCtlLink(TEXT("(Open output file)"), 10, 20, 150, 30, hDlg, IDC_LNK_RESULTS, CLR_BACKGROUND, FALSE);
+			PageResults_Hide(hDlg);
+
 			EnforceSignedIntegerEdit(GetDlgItem(hDlg, IDC_MARMAROU_EDT_ADDEDVOLUME));
 			EnforceSignedIntegerEdit(GetDlgItem(hDlg, IDC_MARMAROU_EDT_BASELINEPRESSURE));
 			EnforceSignedIntegerEdit(GetDlgItem(hDlg, IDC_MARMAROU_EDT_MAXIMUMPRESSURE));
-			EnforceSignedIntegerEdit(GetDlgItem(hDlg, IDC_MARMAROU_EDT_PRESSUREAT2M));
-			EnforceSignedIntegerEdit(GetDlgItem(hDlg, IDC_MARMAROU_EDT_TIMEATP2));
-			PageResults_Hide(hDlg);
+			EnforceSignedIntegerEdit(GetDlgItem(hDlg, IDC_MARMAROU_EDT_PRESSUREAFTERTMINS));
+			EnforceSignedIntegerEdit(GetDlgItem(hDlg, IDC_MARMAROU_EDT_TIMEFORPT));
 
 			// Should send a WM_SIZE message after adding any control
 			GetClientRect(hDlg, &rcCli);
@@ -466,13 +511,13 @@ INT_PTR CALLBACK PageMarmarou_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 					return TRUE;
 				}
 
-				if (ValidateEditEmpty(hDlg, IDC_MARMAROU_EDT_PRESSUREAT2M)) {
-					InvalidField(hDlg, IDC_MARMAROU_EDT_PRESSUREAT2M, TEXT("You should type a number here"));
+				if (ValidateEditEmpty(hDlg, IDC_MARMAROU_EDT_PRESSUREAFTERTMINS)) {
+					InvalidField(hDlg, IDC_MARMAROU_EDT_PRESSUREAFTERTMINS, TEXT("You should type a number here"));
 					return TRUE;
 				}
 
-				if (ValidateEditEmpty(hDlg, IDC_MARMAROU_EDT_TIMEATP2)) {
-					InvalidField(hDlg, IDC_MARMAROU_EDT_TIMEATP2, TEXT("You should type a number here"));
+				if (ValidateEditEmpty(hDlg, IDC_MARMAROU_EDT_TIMEFORPT)) {
+					InvalidField(hDlg, IDC_MARMAROU_EDT_TIMEFORPT, TEXT("You should type a number here"));
 					return TRUE;
 				}
 
@@ -577,20 +622,20 @@ INT_PTR CALLBACK PageMarmarou_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
 			uY += PAGES_VSPACE_MD;
 			SetDlgItemPosSize(hDlg, IDC_MARMAROU_STC_MAXIMUMPRESSURE, PAGES_MARGIN_LEFT, uY, uColWidth, PAGES_STATIC_HEIGHT);
-			SetDlgItemPosSize(hDlg, IDC_MARMAROU_STC_PRESSUREAT2M, PAGES_MARGIN_LEFT + uColWidth + PAGES_HSPACE_MD, uY, uColWidth, PAGES_STATIC_HEIGHT);
+			SetDlgItemPosSize(hDlg, IDC_MARMAROU_STC_PRESSUREAFTERTMINS, PAGES_MARGIN_LEFT + uColWidth + PAGES_HSPACE_MD, uY, uColWidth, PAGES_STATIC_HEIGHT);
 			uY += PAGES_STATIC_HEIGHT;
 
 			uY += PAGES_VSPACE_SM;
 			SetDlgItemPosSize(hDlg, IDC_MARMAROU_EDT_MAXIMUMPRESSURE, PAGES_MARGIN_LEFT, uY, uColWidth, PAGES_EDIT_HEIGHT);
-			SetDlgItemPosSize(hDlg, IDC_MARMAROU_EDT_PRESSUREAT2M, PAGES_MARGIN_LEFT + uColWidth + PAGES_HSPACE_MD, uY, uColWidth, PAGES_EDIT_HEIGHT);
+			SetDlgItemPosSize(hDlg, IDC_MARMAROU_EDT_PRESSUREAFTERTMINS, PAGES_MARGIN_LEFT + uColWidth + PAGES_HSPACE_MD, uY, uColWidth, PAGES_EDIT_HEIGHT);
 			uY += PAGES_EDIT_HEIGHT;
 
 			uY += PAGES_VSPACE_MD;
-			SetDlgItemPosSize(hDlg, IDC_MARMAROU_STC_TIMEATP2, PAGES_MARGIN_LEFT, uY, uColWidth, PAGES_STATIC_HEIGHT);
+			SetDlgItemPosSize(hDlg, IDC_MARMAROU_STC_TIMEFORPT, PAGES_MARGIN_LEFT, uY, uColWidth, PAGES_STATIC_HEIGHT);
 			uY += PAGES_STATIC_HEIGHT;
 
 			uY += PAGES_VSPACE_SM;
-			SetDlgItemPosSize(hDlg, IDC_MARMAROU_EDT_TIMEATP2, PAGES_MARGIN_LEFT, uY, uColWidth, PAGES_EDIT_HEIGHT);
+			SetDlgItemPosSize(hDlg, IDC_MARMAROU_EDT_TIMEFORPT, PAGES_MARGIN_LEFT, uY, uColWidth, PAGES_EDIT_HEIGHT);
 
 			// The "Calculate" button
 			SetDlgItemPosSize(hDlg, IDC_MARMAROU_CMD_CALCULATE,
@@ -648,9 +693,19 @@ INT_PTR CALLBACK PageKatzman_DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 			// Set child controls properties
 			SendDlgItemMessage(hDlg, IDC_KATZMAN_STC_TITLE, WM_SETFONT, (WPARAM)pMainData->hFontPageTitle, MAKELPARAM(TRUE, 0));
+
+			SendDlgItemMessage(hDlg, IDC_KATZMAN_STC_EVALUATORNAME, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_KATZMAN_STC_PATIENTNAME, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_KATZMAN_STC_MEDICALRECORD, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_KATZMAN_STC_INFUSIONRATE, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_KATZMAN_STC_BASELINEPRESSURE, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_KATZMAN_STC_PLATEAUPRESSURE, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+			SendDlgItemMessage(hDlg, IDC_KATZMAN_STC_TIMEPLATEAU, WM_SETFONT, (WPARAM)pMainData->hFontInput, MAKELPARAM(TRUE, 0));
+
 			LoadCheckDpiAwareBitmap(hDlg, IDC_PIC_RESULTS);
 			SendDlgItemMessage(hDlg, IDC_STC_RESULTS, WM_SETFONT, (WPARAM)pMainData->hFontResults, MAKELPARAM(TRUE, 0));
-			CreateCtlLink(TEXT("(Open output file)"), 10, 20, 150, 30, hDlg, IDC_LNK_RESULTS, CLR_BACKGROUND);
+			CreateCtlLink(TEXT("(Open output file)"), 10, 20, 150, 30, hDlg, IDC_LNK_RESULTS, CLR_BACKGROUND, FALSE);
+
 			EnforceSignedIntegerEdit(GetDlgItem(hDlg, IDC_KATZMAN_EDT_INFUSIONRATE));
 			EnforceSignedIntegerEdit(GetDlgItem(hDlg, IDC_KATZMAN_EDT_BASELINEPRESSURE));
 			EnforceSignedIntegerEdit(GetDlgItem(hDlg, IDC_KATZMAN_EDT_PLATEAUPRESSURE));

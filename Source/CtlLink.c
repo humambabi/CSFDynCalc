@@ -1,5 +1,5 @@
 //
-// CSF Dynamic CALC v1.0
+// CSF Dynamic CALC
 // (CtlLink.c) CtlLink Custom Control
 //
 
@@ -19,6 +19,7 @@ typedef struct LINKDATA {
 	BOOL			bStateHot;
 	BOOL			bTracking;
 	BOOL			bMouseDown;
+	BOOL			bTypeRed;
 	RECT			rcActive;
 	COLORREF		clrBackground;
 } LINKDATA;
@@ -97,7 +98,11 @@ static void APIENTRY DrawCtlLink(HWND hWnd, HDC hDC) {
 
 	// Draw the text
 	if (ptsText != NULL) {
-		clrBrush = (pLinkData->bStateHot) ? RGB(70, 163, 255) : RGB(0, 83, 166);
+		if (pLinkData->bTypeRed) {
+			clrBrush = (pLinkData->bStateHot) ? RGB(255, 80, 80) : RGB(185, 0, 0);
+		} else {
+			clrBrush = (pLinkData->bStateHot) ? RGB(70, 163, 255) : RGB(0, 83, 166);
+		}
 		GdipCreateSolidFill(RGB2ARGB(255, clrBrush), &pBrush);
 
 		RcText.X = (REAL)pLinkData->rcActive.left;
@@ -112,7 +117,7 @@ static void APIENTRY DrawCtlLink(HWND hWnd, HDC hDC) {
 		if (pLinkData->bStateHot) {
 			GpPen	*pPen;
 			
-			GdipCreatePen1(MAKEARGB(255, 70, 163, 255), 1.0f, UnitPixel, &pPen);
+			GdipCreatePen1(pLinkData->bTypeRed ? MAKEARGB(255, 255, 80, 80) : MAKEARGB(255, 70, 163, 255), 1.0f, UnitPixel, &pPen);
 			GdipDrawLine(pGr, pPen, (float)pLinkData->rcActive.left, (float)pLinkData->rcActive.bottom - 1.0f,
 				(float)pLinkData->rcActive.right, (float)pLinkData->rcActive.bottom - 1.0f);
 			GdipDeletePen(pPen);
@@ -310,7 +315,7 @@ static LRESULT CALLBACK LinkCtl_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-HWND APIENTRY CreateCtlLink(TCHAR *ptsText, int iX, int iY, UINT uW, UINT uH, HWND hWndParent, UINT uCtlID, COLORREF clrBkgnd) {
+HWND APIENTRY CreateCtlLink(TCHAR *ptsText, int iX, int iY, UINT uW, UINT uH, HWND hWndParent, UINT uCtlID, COLORREF clrBkgnd, BOOL bTypeRed) {
 	WNDCLASS	WndCls;
 	HWND		hWndLink;
 	LINKDATA	*pLinkData = (LINKDATA *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS, sizeof(LINKDATA));
@@ -332,6 +337,7 @@ HWND APIENTRY CreateCtlLink(TCHAR *ptsText, int iX, int iY, UINT uW, UINT uH, HW
 	// Initialize the CtlLink window data here because we need the parameters (all other un-initialized members are actually zeroed)
 	pLinkData->pFont = CreateGdipFont(11, FW_NORMAL, FALSE, FALSE);
 	pLinkData->clrBackground = clrBkgnd;
+	pLinkData->bTypeRed = bTypeRed;
 
 	// Create a new Link Control window (invisible initially), and save pLinkData)
 #pragma warning(disable: 4312) // Only for x64 systems: Warning of converting UINT to HMENU (Bigger data type)

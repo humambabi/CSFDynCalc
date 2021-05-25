@@ -1,5 +1,5 @@
 ﻿//
-// CSF Dynamic Calc v1.0
+// CSF Dynamic Calc
 //
 // (Build.h) Build-related definitions
 //

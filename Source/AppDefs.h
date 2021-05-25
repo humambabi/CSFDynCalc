@@ -1,11 +1,11 @@
 ﻿//
-// CSF Dynamic CALC v1.0
+// CSF Dynamic CALC
 // (AppDefs.h) Main Application's Definitions
 //
 
 
 // Main window related definitions
-#define STR_APPNAME							TEXT("CSF Dynamic CALC v1.0")
+#define STR_APPNAME							TEXT("CSF Dynamic CALC v1.01")
 #define WC_MAINWND							TEXT("CSFDCMain_WndCls")
 #define WC_CTLLINK					      TEXT("CtlLink")
 
@@ -79,12 +79,12 @@
 #define PAGES_EVANS_RESSTC_WIDTH       DPIScaleX(126)
 #define PAGES_EVANS_RESSTC_HEIGHT      DPIScaleY(20)
 #define PAGES_EVANS_RESSTC_SPCTOP      DPIScaleY(6)
-#define PAGES_MARMAROU_RESSTC_WIDTH    DPIScaleX(215)
+#define PAGES_MARMAROU_RESSTC_WIDTH    DPIScaleX(225)
 #define PAGES_MARMAROU_RESSTC_HEIGHT   DPIScaleY(88)
 #define PAGES_MARMAROU_RESSTC_SPCTOP   DPIScaleY(-26)
 #define PAGES_KATZMAN_RESSTC_WIDTH     DPIScaleX(215)
-#define PAGES_KATZMAN_RESSTC_HEIGHT    DPIScaleY(45)
-#define PAGES_KATZMAN_RESSTC_SPCTOP    DPIScaleY(-3)
+#define PAGES_KATZMAN_RESSTC_HEIGHT    DPIScaleY(68)
+#define PAGES_KATZMAN_RESSTC_SPCTOP    DPIScaleY(-15)
 
 #define PAGES_RESULT_HSPC_PICSTC       DPIScaleX(3)      // Horizontal space between the pic & stc controls
 #define PAGES_RESULT_HSPC_STCLNK       DPIScaleX(3)      // Horizontal space between the stc & lnk controls
@@ -97,7 +97,9 @@
 #define HANDLE_WM_DPICHANGED(hWnd, wParam, lParam, fn) \
     ((fn)((hWnd), (int)(short)LOWORD(wParam), (int)(short)HIWORD(wParam), (RECT *)(lParam)), 0L)
 
+#ifndef HANDLE_WM_MOUSELEAVE
 #define HANDLE_WM_MOUSELEAVE(hWnd, wParam, lParam, fn)	((fn)(hWnd), 0L)
+#endif
 
 // Helper macros
 #define UNUSED(Param)						(void)Param
@@ -105,6 +107,7 @@
 // Private data structure for the main window
 typedef struct {
    HFONT		hFontPageTitle;
+	HFONT		hFontInput;
    HFONT    hFontResults;
    HBRUSH   hBrushCtlBkgnd;
 } MAINWNDDATA;

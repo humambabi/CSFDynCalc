@@ -1,5 +1,5 @@
 ﻿//
-// CSF Dynamic CALC v1.0
+// CSF Dynamic CALC
 // (Functions.c) Contains various helper functions
 //
 
@@ -298,7 +298,7 @@ void APIENTRY LoadCheckDpiAwareBitmap(HWND hDlg, UINT uCtlID) {
 	else if ((cX > 48) && (cX <= 56)) idRes = IDB_CHECK56;
 	else if ((cX > 56) && (cX <= 64)) idRes = IDB_CHECK64;
 	else if ((cX > 64) && (cX <= 72)) idRes = IDB_CHECK72;
-	else if (cX > 72) idRes = IDB_CHECK80;
+	else idRes = IDB_CHECK80; // (cX > 72)
 
 	hBmp = (HBITMAP)LoadImage(g_hInstApp, MAKEINTRESOURCE(idRes), IMAGE_BITMAP, 0, 0, LR_SHARED);
 	hObjOld = (HGDIOBJ)SendDlgItemMessage(hDlg, uCtlID, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBmp);
@@ -308,7 +308,7 @@ void APIENTRY LoadCheckDpiAwareBitmap(HWND hDlg, UINT uCtlID) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 TCHAR *APIENTRY CreateResultsFileNameAlloc(TCHAR *ptsTestName) {
-	TCHAR			tsDate[150], tsFile[250], tsExt[] = TEXT(".txt"), tsAppPath[350], tsFullPath[500], *ptsOut;
+	TCHAR			tsDate[250], tsFile[350], tsExt[] = TEXT(".txt"), tsAppPath[500], tsFullPath[750], *ptsOut;
 	SYSTEMTIME	stmNow;
 	UINT			uC = 0;
 
@@ -464,8 +464,12 @@ BOOL APIENTRY CreateResults_Evans(HWND hDlg) {
 	}
 
 	// Calculate, create a result string, and assign it to the results static control
+	if (iMaxInternalSkullDiameter == 0) {
+		MessageBox(hDlg, TEXT("Sorry! The entered values caused a division by zero error!"), STR_APPNAME, MB_OK | MB_ICONEXCLAMATION);
+		return FALSE;
+	}
 	fResult = (float)iFrontalHornsMaxWidth / (float)iMaxInternalSkullDiameter;
-	StringCbPrintf(tsResult, sizeof(tsResult), TEXT("%s: %.2f"), tsTestName, fResult);
+	StringCbPrintf(tsResult, sizeof(tsResult), TEXT("%ls: %.2f"), tsTestName, fResult);
 	SetDlgItemText(hDlg, IDC_STC_RESULTS, tsResult);
 
 	// Create a text file
@@ -528,8 +532,8 @@ BOOL APIENTRY CreateResults_Evans(HWND hDlg) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 BOOL APIENTRY CreateResults_MarmarouBolus(HWND hDlg) {
-	float		fDeltaVol, fBasePressure, fMaxPressure, fPressure2m, fTimeP2;
-	float		fPVI, fRout, fCout, fPpDivP0, fT2P0, fRLogArgument, fTemp;
+	float		fDeltaVol, fBasePressure, fMaxPressure, fPressureTmin, fTime4Pt;
+	float		fPpDivP0, fTemp, fPVI, fCompliance, fT2P0, fRLogArgument, fRout, fCout;
 	TCHAR		tsText[250], tsResult[500], *ptsFilePath, tsTestName[] = TEXT("Marmarou's test"), tsLine[250], tsTemp[150];
 	HANDLE	hFile;
 
@@ -548,11 +552,11 @@ BOOL APIENTRY CreateResults_MarmarouBolus(HWND hDlg) {
 	GetDlgItemText(hDlg, IDC_MARMAROU_EDT_MAXIMUMPRESSURE, tsText, sizeof(tsText) / sizeof(TCHAR));
 	fMaxPressure = _tcstof(tsText, NULL);
 
-	GetDlgItemText(hDlg, IDC_MARMAROU_EDT_PRESSUREAT2M, tsText, sizeof(tsText) / sizeof(TCHAR));
-	fPressure2m = _tcstof(tsText, NULL);
+	GetDlgItemText(hDlg, IDC_MARMAROU_EDT_PRESSUREAFTERTMINS, tsText, sizeof(tsText) / sizeof(TCHAR));
+	fPressureTmin = _tcstof(tsText, NULL);
 
-	GetDlgItemText(hDlg, IDC_MARMAROU_EDT_TIMEATP2, tsText, sizeof(tsText) / sizeof(TCHAR));
-	fTimeP2 = _tcstof(tsText, NULL);
+	GetDlgItemText(hDlg, IDC_MARMAROU_EDT_TIMEFORPT, tsText, sizeof(tsText) / sizeof(TCHAR));
+	fTime4Pt = _tcstof(tsText, NULL);
 
 	// Calculate
 	if (fBasePressure == 0.0f) {
@@ -560,6 +564,10 @@ BOOL APIENTRY CreateResults_MarmarouBolus(HWND hDlg) {
 		return FALSE;
 	}
 	fPpDivP0 = fMaxPressure / fBasePressure;
+	if (fPpDivP0 <= 0) { // Logarithms' argument cannot be 0 or less
+		MessageBox(hDlg, TEXT("Sorry! The entered values caused a logarithm error!\r\n\r\nPlease, check the values and try again."), STR_APPNAME, MB_OK | MB_ICONEXCLAMATION);
+		return FALSE;
+	}
 
 	fTemp = log10f(fPpDivP0);
 	if (fTemp == 0.0f) {
@@ -567,13 +575,17 @@ BOOL APIENTRY CreateResults_MarmarouBolus(HWND hDlg) {
 		return FALSE;
 	}
 	fPVI = fDeltaVol / fTemp;
+
+	/* P is P0 */
+	// fBasePressure is checked before (not to be 0)
+	fCompliance = (0.4343f * fPVI) / fBasePressure;
 	
-	fT2P0 = fTimeP2 * fBasePressure;
-	if ((fMaxPressure == 0.0f) || ((fPressure2m - fBasePressure) == 0.0f)) {
+	fT2P0 = fTime4Pt * fBasePressure;
+	if ((fMaxPressure == 0.0f) || ((fPressureTmin - fBasePressure) == 0.0f)) {
 		MessageBox(hDlg, TEXT("Sorry! The entered values caused a division by zero error!"), STR_APPNAME, MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
-	fRLogArgument = (fPressure2m / fMaxPressure) * ((fMaxPressure - fBasePressure) / (fPressure2m - fBasePressure));
+	fRLogArgument = (fPressureTmin / fMaxPressure) * ((fMaxPressure - fBasePressure) / (fPressureTmin - fBasePressure));
 	if (fRLogArgument <= 0) { // Logarithms' argument cannot be 0 or less
 		MessageBox(hDlg, TEXT("Sorry! The entered values caused a logarithm error!\r\n\r\nPlease, check the values and try again."), STR_APPNAME, MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
@@ -585,12 +597,11 @@ BOOL APIENTRY CreateResults_MarmarouBolus(HWND hDlg) {
 	}
 	fRout = fT2P0 / fTemp;
 
-	/* P is P0 */
-	// fBasePressure is checked before (not to be 0)
-	fCout = (0.4343f * fPVI) / fBasePressure;
+	fCout = 1.0f / fRout;
 
 	// Create a result string, and assign it to the results static control
-	StringCbPrintf(tsResult, sizeof(tsResult), TEXT("PVI = %.2f mL\r\nCompliance:\r\nRout = %.2f mmHg/mL/min\r\nCout = %.2f mmHg/mL/min"), fPVI, fRout, fCout);
+	StringCbPrintf(tsResult, sizeof(tsResult), TEXT("PVI = %.3f mL\r\nCompliance = %.3f mL/mmHg\r\nRout = %.3f mmHg/mL/min\r\nCout = %.3f mmHg/mL/min"),
+		fPVI, fCompliance, fRout, fCout);
 	SetDlgItemText(hDlg, IDC_STC_RESULTS, tsResult);
 
 	// Create a text file
@@ -637,12 +648,12 @@ BOOL APIENTRY CreateResults_MarmarouBolus(HWND hDlg) {
 	wsprintf(tsLine, TEXT("Maximum Pressure (Pp): %s mmHg\r\n"), tsTemp);
 	WriteFile(hFile, tsLine, lstrlen(tsLine) * sizeof(TCHAR), NULL, NULL);
 
-	GetDlgItemText(hDlg, IDC_MARMAROU_EDT_PRESSUREAT2M, tsTemp, sizeof(tsTemp) / sizeof(TCHAR));
-	wsprintf(tsLine, TEXT("Pressure at 2 m (P2): %s mmHg\r\n"), tsTemp);
+	GetDlgItemText(hDlg, IDC_MARMAROU_EDT_PRESSUREAFTERTMINS, tsTemp, sizeof(tsTemp) / sizeof(TCHAR));
+	wsprintf(tsLine, TEXT("Pressure after 't' minutes (Pt): %s mmHg\r\n"), tsTemp);
 	WriteFile(hFile, tsLine, lstrlen(tsLine) * sizeof(TCHAR), NULL, NULL);
 
-	GetDlgItemText(hDlg, IDC_MARMAROU_EDT_TIMEATP2, tsTemp, sizeof(tsTemp) / sizeof(TCHAR));
-	wsprintf(tsLine, TEXT("Time at P2: %s (min after bolus)\r\n\r\n"), tsTemp);
+	GetDlgItemText(hDlg, IDC_MARMAROU_EDT_TIMEFORPT, tsTemp, sizeof(tsTemp) / sizeof(TCHAR));
+	wsprintf(tsLine, TEXT("Time at Pt: %s (minutes after bolus)\r\n\r\n"), tsTemp);
 	WriteFile(hFile, tsLine, lstrlen(tsLine) * sizeof(TCHAR), NULL, NULL);
 
 	wsprintf(tsLine, TEXT("%s\r\n"), tsResult);
@@ -665,7 +676,7 @@ BOOL APIENTRY CreateResults_MarmarouBolus(HWND hDlg) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 BOOL APIENTRY CreateResults_Katzman(HWND hDlg) {
-	float		fInfusionRate, fBasePressure, fPlateauPressure, fRout, fCout;
+	float		fInfusionRate, fBasePressure, fPlateauPressure, fTimeAtPlateau, fRout, fCout;
 	TCHAR		tsText[250], tsResult[300], *ptsFilePath, tsTestName[] = TEXT("Katzman's test"), tsLine[250], tsTemp[150];
 	HANDLE	hFile;
 
@@ -684,6 +695,9 @@ BOOL APIENTRY CreateResults_Katzman(HWND hDlg) {
 	GetDlgItemText(hDlg, IDC_KATZMAN_EDT_PLATEAUPRESSURE, tsText, sizeof(tsText) / sizeof(TCHAR));
 	fPlateauPressure = _tcstof(tsText, NULL);
 
+	GetDlgItemText(hDlg, IDC_KATZMAN_EDT_TIMEPLATEAU, tsText, sizeof(tsText) / sizeof(TCHAR));
+	fTimeAtPlateau = _tcstof(tsText, NULL);
+
 	// Calculate
 	if (fInfusionRate == 0.0f) {
 		MessageBox(hDlg, TEXT("Sorry! The entered values caused a division by zero error!"), STR_APPNAME, MB_OK | MB_ICONEXCLAMATION);
@@ -698,7 +712,8 @@ BOOL APIENTRY CreateResults_Katzman(HWND hDlg) {
 	fCout = 1 / fRout;
 
 	// Create a result string, and assign it to the results static control
-	StringCbPrintf(tsResult, sizeof(tsResult), TEXT("Rout = %.2f mmHg/mL/min\r\nCout = %.2f mmHg/mL/min"), fRout, fCout);
+	StringCbPrintf(tsResult, sizeof(tsResult), TEXT("Rout = %.3f mmHg/mL/min\r\nCout = %.3f mmHg/mL/min\r\nTime at plateau = %.1f min"),
+		fRout, fCout, fTimeAtPlateau);
 	SetDlgItemText(hDlg, IDC_STC_RESULTS, tsResult);
 
 	// Create a text file
@@ -742,12 +757,12 @@ BOOL APIENTRY CreateResults_Katzman(HWND hDlg) {
 	WriteFile(hFile, tsLine, lstrlen(tsLine) * sizeof(TCHAR), NULL, NULL);
 
 	GetDlgItemText(hDlg, IDC_KATZMAN_EDT_PLATEAUPRESSURE, tsTemp, sizeof(tsTemp) / sizeof(TCHAR));
-	wsprintf(tsLine, TEXT("Plateau Pressure (Pp): %s mmHg\r\n\r\n"), tsTemp);
+	wsprintf(tsLine, TEXT("Plateau Pressure (Pp): %s mmHg\r\n"), tsTemp);
 	WriteFile(hFile, tsLine, lstrlen(tsLine) * sizeof(TCHAR), NULL, NULL);
 
-	/*
-	Do we need the "time at plateau" field ??
-	*/
+	GetDlgItemText(hDlg, IDC_KATZMAN_EDT_TIMEPLATEAU, tsTemp, sizeof(tsTemp) / sizeof(TCHAR));
+	wsprintf(tsLine, TEXT("Time at plateau: %s min\r\n\r\n"), tsTemp);
+	WriteFile(hFile, tsLine, lstrlen(tsLine) * sizeof(TCHAR), NULL, NULL);
 	
 	wsprintf(tsLine, TEXT("%s\r\n"), tsResult);
 	WriteFile(hFile, tsLine, lstrlen(tsLine) * sizeof(TCHAR), NULL, NULL);

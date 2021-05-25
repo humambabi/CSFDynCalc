@@ -1,14 +1,14 @@
 //
-// CSF Dynamic CALC v1.0
+// CSF Dynamic CALC
 // By Humam A. Babi (humam_babi@yahoo.com), 2021 
 //
 // (MainWnd.c) Application's main window event procedures
 //
 
 #include "Build.h"
-#include "AppDefs.h"
 #include <CommCtrl.h>
 #include <WindowsX.h>
+#include "AppDefs.h"
 #include "Resources.h"
 
 
