@@ -41,10 +41,10 @@
     <ClCompile Include="Graphics.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PagesWnd.c">
+    <ClCompile Include="CtlLink.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CtlLink.c">
+    <ClCompile Include="PagesWnd.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
